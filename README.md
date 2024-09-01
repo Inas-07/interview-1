@@ -136,20 +136,20 @@ int* const function7();     // 返回一个指向变量的常指针，使用：i
 
 #### 作用
 
-1. 修饰普通变量，修改变量的存储区域和生命周期，使变量存储在静态区，在 main 函数运行前就分配了空间，如果有初始值就用初始值初始化它，如果没有初始值系统用默认值初始化它。
+1. 修饰普通变量【区别于类内的static变量】，修改变量的存储区域和生命周期，使变量存储在<i><b>静态区</b></i>，在 main 函数运行<i><b>前</b></i>就分配了空间，如果有初始值就用初始值初始化它，如果没有初始值系统用默认值初始化它。
 2. 修饰普通函数，表明函数的作用范围，仅在定义该函数的文件内才能使用。在多人开发项目时，为了防止与他人命名空间里的函数重名，可以将函数定位为 static。
 3. 修饰成员变量，修饰成员变量使所有的对象只保存一个该变量，而且不需要生成对象就可以访问该成员。
 4. 修饰成员函数，修饰成员函数使得不需要生成对象就可以访问该函数，但是在 static 函数内不能访问非静态成员。
 
 ### this 指针
 
-1. `this` 指针是一个隐含于每一个非静态成员函数中的特殊指针。它指向调用该成员函数的那个对象。
-2. 当对一个对象调用成员函数时，编译程序先将对象的地址赋给 `this` 指针，然后调用成员函数，每次成员函数存取数据成员时，都隐式使用 `this` 指针。
-3. 当一个成员函数被调用时，自动向它传递一个隐含的参数，该参数是一个指向这个成员函数所在的对象的指针。
+1. `this` 指针是一个<i><b>隐含于</b></i>每一个非静态成员函数中的特殊指针。它指向调用该成员函数的那个对象。
+2. 当对一个对象调用成员函数时，编译程序先将对象的地址赋给 `this` 指针，然后调用成员函数，<u>每次成员函数存取数据成员时，都隐式使用 `this` 指针</u>。
+3. <u>当一个成员函数被调用时，自动向它传递一个隐含的参数</u>，该参数是一个指向这个成员函数所在的对象的指针【类似于python里要显式定义的self】。
 4. `this` 指针被隐含地声明为: `ClassName *const this`，这意味着不能给 `this` 指针赋值；在 `ClassName` 类的 `const` 成员函数中，`this` 指针的类型为：`const ClassName* const`，这说明不能对 `this` 指针所指向的这种对象是不可修改的（即不能对这种对象的数据成员进行赋值操作）；
-5. `this` 并不是一个常规变量，而是个右值，所以不能取得 `this` 的地址（不能 `&this`）。
+5. `this` 并不是一个常规变量，而是个<u>右值</u>，所以不能取得 `this` 的地址（不能 `&this`）。
 6. 在以下场景中，经常需要显式引用 `this` 指针：
-    1. 为实现对象的链式引用；
+    1. 为实现对象的链式引用<b>【链式引用即：list.convertAll().select().append().toList()这种，每个函数都返回this/self】</b>；
     2. 为避免对同一对象进行赋值操作；
     3. 在实现一些数据结构时，如 `list`。
 
@@ -161,7 +161,7 @@ int* const function7();     // 返回一个指向变量的常指针，使用：i
 * 相当于不用执行进入函数的步骤，直接执行函数体；
 * 相当于宏，却比宏多了类型检查，真正具有函数特性；
 * 编译器一般不内联包含循环、递归、switch 等复杂操作的内联函数；
-* 在类声明中定义的函数，除了虚函数的其他函数都会自动隐式地当成内联函数。
+* 在<u><b>类声明</b></u>(而不是类定义)中定义的函数，除了虚函数的其他函数都会自动隐式地当成内联函数。
 
 #### 使用
 
@@ -191,33 +191,33 @@ inline int A::doA() { return 0; }   // 需要显式内联
 
 #### 编译器对 inline 函数的处理步骤
 
-1. 将 inline 函数体复制到 inline 函数调用点处； 
-2. 为所用 inline 函数中的局部变量分配内存空间； 
-3. 将 inline 函数的的输入参数和返回值映射到调用方法的局部变量空间中； 
-4. 如果 inline 函数有多个返回点，将其转变为 inline 函数代码块末尾的分支（使用 GOTO）。
+1. 将 inline 函数体<b>复制</b>到 inline 函数调用点处； 
+2. 为所用 inline 函数中的局部变量<b>分配</b>内存空间； 
+3. 将 inline 函数的的输入参数和返回值<b>映射</b>到调用方法的局部变量空间中； 
+4. 如果 inline 函数有多个返回点，将其转变为 inline 函数代码块末尾的分支（使用 GOTO）【也就是通过GOTO将多个返回点聚合成一个返回点】。
 
 #### 优缺点
 
 优点
 
-1. 内联函数同宏函数一样将在被调用处进行代码展开，省去了参数压栈、栈帧开辟与回收，结果返回等，从而提高程序运行速度。
-2. 内联函数相比宏函数来说，在代码展开时，会做安全检查或自动类型转换（同普通函数），而宏定义则不会。 
-3. 在类中声明同时定义的成员函数，自动转化为内联函数，因此内联函数可以访问类的成员变量，宏定义则不能。
-4. 内联函数在运行时可调试，而宏定义不可以。
+1. 内联函数同宏函数一样将在被调用处进行代码展开，<b>省去</b>了参数压栈、栈帧开辟与回收，结果返回等，从而提高程序运行速度。
+2. 内联函数相比宏函数来说，在代码展开时，会做<b>安全检查或自动类型转换</b>（同普通函数），而宏定义则不会。 
+3. 在类中声明同时定义的成员函数，自动转化为内联函数，因此内联函数<b>可以访问</b>类的成员变量，宏定义则不能。
+4. 内联函数在运行时<b>可调试</b>，而宏定义不可以。
 
 缺点
 
-1. 代码膨胀。内联是以代码膨胀（复制）为代价，消除函数调用带来的开销。如果执行函数体内代码的时间，相比于函数调用的开销较大，那么效率的收获会很少。另一方面，每一处内联函数的调用都要复制代码，将使程序的总代码量增大，消耗更多的内存空间。
-2. inline 函数无法随着函数库升级而升级。inline函数的改变需要重新编译，不像 non-inline 可以直接链接。
-3. 是否内联，程序员不可控。内联函数只是对编译器的建议，是否对函数内联，决定权在于编译器。
+1. 代码膨胀。内联是以代码<b>膨胀（复制）</b>为代价，消除函数调用带来的开销。如果执行函数体内代码的时间，相比于函数调用的开销较大，那么效率的收获会很少。另一方面，每一处内联函数的调用都要复制代码，将使程序的总代码量增大，消耗更多的内存空间。
+2. inline 函数无法随着函数库升级而升级。<b>inline函数的改变需要重新编译</b>，不像 non-inline 可以直接链接。
+3. 是否内联，<b>程序员不可控</b>。内联函数只是对编译器的建议，是否对函数内联，决定权在于编译器。
 
 #### 虚函数（virtual）可以是内联函数（inline）吗？
 
 > [Are "inline virtual" member functions ever actually "inlined"?](http://www.cs.technion.ac.il/users/yechiel/c++-faq/inline-virtuals.html)
 
-* 虚函数可以是内联函数，内联是可以修饰虚函数的，但是当虚函数表现多态性的时候不能内联。
+* 虚函数可以是内联函数，内联是可以修饰虚函数的，但是<b>当虚函数表现多态性的时候不能内联</b>。
 * 内联是在编译期建议编译器内联，而虚函数的多态性在运行期，编译器无法知道运行期调用哪个代码，因此虚函数表现为多态性时（运行期）不可以内联。
-* `inline virtual` 唯一可以内联的时候是：编译器知道所调用的对象是哪个类（如 `Base::who()`），这只有在编译器具有实际对象而不是对象的指针或引用时才会发生。
+* `inline virtual` 唯一可以内联的时候是：<b>编译器知道所调用的对象是哪个<i>类</i></b>（如 `Base::who()`），这只有在编译器具有实际对象而不是对象的指针或引用时才会发生。【recall：C++中，要通过父类对象调用一个子类重写的函数时，得通过对象指针（而不可通过对象本身）进行】
 
 虚函数内联使用
 
@@ -268,13 +268,14 @@ volatile int i = 10;
 ```
 
 * volatile 关键字是一种类型修饰符，用它声明的类型变量表示可以被某些编译器未知的因素（操作系统、硬件、其它线程等）更改。所以使用 volatile 告诉编译器不应对这样的对象进行优化。
-* volatile 关键字声明的变量，每次访问时都必须从内存中取出值（没有被 volatile 修饰的变量，可能由于编译器的优化，从 CPU 寄存器中取值）
+* volatile 关键字声明的变量，每次访问时都必须从<b>内存</b>中取出值（没有被 volatile 修饰的变量，可能由于编译器的优化，从 CPU 寄存器中取值）
 * const 可以是 volatile （如只读的状态寄存器）
 * 指针可以是 volatile
+* 【以上这些点与java中的volatile是非常类似的，只不过多了“指针”这种情况】
 
 ### assert()
 
-断言，是宏，而非函数。assert 宏的原型定义在 `<assert.h>`（C）、`<cassert>`（C++）中，其作用是如果它的条件返回错误，则终止程序执行。可以通过定义 `NDEBUG` 来关闭 assert，但是需要在源代码的开头，`include <assert.h>` 之前。
+断言，是<b>宏</b>，而非函数。assert 宏的原型定义在 `<assert.h>`（C）、`<cassert>`（C++）中，其作用是如果它的条件返回错误，则终止程序执行。可以通过定义 `NDEBUG` 来关闭 assert，但是需要在源代码的开头，`include <assert.h>` 之前。
 
 assert() 使用
 
@@ -290,7 +291,7 @@ assert( p != NULL );    // assert 不可用
 * sizeof 对数组，得到整个数组所占空间大小。
 * sizeof 对指针，得到指针本身所占空间大小。
 
-### #pragma pack(n)
+### #pragma pack(n) 【陌生用法…】
 
 设定结构体、联合以及类成员变量以 n 字节方式对齐
 
@@ -310,7 +311,7 @@ struct test
 #pragma pack(pop)   // 恢复对齐状态
 ```
 
-### 位域
+### 位域 【陌生用法…】
 
 ```cpp
 Bit mode: 2;    // mode 占 2 位
@@ -318,14 +319,14 @@ Bit mode: 2;    // mode 占 2 位
 
 类可以将其（非静态）数据成员定义为位域（bit-field），在一个位域中含有一定数量的二进制位。当一个程序需要向其他程序或硬件设备传递二进制数据时，通常会用到位域。
 
-* 位域在内存中的布局是与机器有关的
+* 位域在内存中的布局是与机器有关的【大小端？】
 * 位域的类型必须是整型或枚举类型，带符号类型中的位域的行为将因具体实现而定
 * 取地址运算符（&）不能作用于位域，任何指针都无法指向类的位域
 
 ### extern "C"
 
 * 被 extern 限定的函数或变量是 extern 类型的
-* 被 `extern "C"` 修饰的变量和函数是按照 C 语言方式编译和链接的
+* 被 `extern "C"` 修饰的变量和函数是<i><b>按照 C 语言方式</b></i>编译和链接的
 
 `extern "C"` 的作用是让 C++ 编译器将 `extern "C"` 声明的代码当作 C 语言代码处理，可以避免 C++ 因符号修饰导致代码不能和C语言库中的符号进行链接的问题。
 
@@ -346,6 +347,7 @@ void *memset(void *, int, size_t);
 ### struct 和 typedef struct
 
 #### C 中
+【recall：在C中写结构体类型时，如果不用typedef，则必须是`struct StructName variable`，即前面必须带有`struct`】
 
 ```c
 // c
@@ -411,20 +413,20 @@ int main() {
 #### 区别
 
 * 最本质的一个区别就是默认的访问控制
-    1. 默认的继承访问权限。struct 是 public 的，class 是 private 的。  
+    1. 默认的继承访问权限。struct 是 <b>public</b> 的，class 是 <b>private</b> 的。  
     2. struct 作为数据结构的实现体，它默认的数据访问控制是 public 的，而 class 作为对象的实现体，它默认的成员变量访问控制是 private 的。
 
 ### union 联合
 
-联合（union）是一种节省空间的特殊的类，一个 union 可以有多个数据成员，但是在任意时刻只有一个数据成员可以有值。当某个成员被赋值后其他成员变为未定义状态。联合有如下特点：
+联合（union）是一种节省空间的特殊的类，一个 union 可以有多个数据成员，但是在任意时刻只有一个数据成员可以有值。当某个成员被赋值后其他成员变为<b>未定义</b>状态。联合有如下特点：
 
 * 默认访问控制符为 public
 * 可以含有构造函数、析构函数
 * 不能含有引用类型的成员
-* 不能继承自其他类，不能作为基类
-* 不能含有虚函数
+* 不能继承自其他类，不能作为基类    【不可参与继承链】
+* 不能含有虚函数【不可参与继承链】
 * 匿名 union 在定义所在作用域可直接访问 union 成员
-* 匿名 union 不能包含 protected 成员或 private 成员
+* 匿名 union 不能包含 protected 成员或 private 成员【不可参与继承链】
 * 全局匿名联合必须是静态（static）的
 
 union 使用
@@ -438,7 +440,7 @@ union UnionTest {
     double d;
 };
 
-static union {
+static union { // 【全局静态匿名union，用::i、::d访问】
     int i;
     double d;
 };
@@ -446,7 +448,8 @@ static union {
 int main() {
     UnionTest u;
 
-    union {
+    union { // 【局部匿名union，相当于定义了i和d两种不同类型的变量，但只用其中一个；
+            //   会占用局部变量名i】
         int i;
         double d;
     };
@@ -469,7 +472,7 @@ C 实现 C++ 的面向对象特性（封装、继承、多态）
 
 * 封装：使用函数指针把属性与方法封装到结构体中
 * 继承：结构体嵌套
-* 多态：父类与子类方法的函数指针不同
+* 多态：父类与子类方法的函数指针不同 【虚函数表】
 
 > [Can you write object-oriented code in C? [closed]](https://stackoverflow.com/a/351745)
 
@@ -543,7 +546,7 @@ int main()
 using namespace_name::name;
 ```
 
-#### 构造函数的 using 声明
+#### 构造函数的 using 声明 【我去，没见过的好特性】
 
 在 C++11 中，派生类能够重用其直接基类定义的构造函数。
 
@@ -604,7 +607,7 @@ cout << x << endl;
 
 #### 分类
 
-1. 全局作用域符（`::name`）：用于类型名称（类、类成员、成员函数、变量等）前，表示作用域为全局命名空间
+1. 全局作用域符（`::name`）：用于类型名称（类、类成员、成员函数、变量等）前，表示作用域为全局命名空间【匿名全局union也用这个来引用，其本质是对全局变量的引用】
 2. 类作用域符（`class::name`）：用于表示指定类型的作用域范围是具体某个类的
 3. 命名空间作用域符（`namespace::name`）:用于表示指定类型的作用域范围是具体某个命名空间的
 
@@ -644,14 +647,14 @@ int main() {
 enum class open_modes { input, output, append };
 ```
 
-#### 不限定作用域的枚举类型
+#### 不限定作用域的枚举类型 【这里的作用域，指的是啥？？？】
 
 ```cpp
 enum color { red, yellow, green };
 enum { floatPrec = 6, doublePrec = 10 };
 ```
 
-### decltype
+### decltype 
 
 decltype 关键字用于检查实体的声明类型或表达式的类型及值分类。语法：
 
@@ -659,7 +662,7 @@ decltype 关键字用于检查实体的声明类型或表达式的类型及值�
 decltype ( expression )
 ```
 
-decltype 使用
+decltype 使用【具体点：https://stackoverflow.com/questions/18815221/what-is-decltype-and-how-is-it-used 】
 
 ```cpp
 // 尾置返回允许我们在参数列表之后声明返回类型
@@ -686,6 +689,42 @@ auto fcn2(It beg, It end) -> typename remove_reference<decltype(*beg)>::type
 
 #### 右值引用
 
+【更具体的解释：】
+【https://stackoverflow.com/questions/9406121/what-exactly-is-an-r-value-in-c 】
+【std::move与右值引用，及用法：https://blog.csdn.net/swartz_lubel/article/details/59620868 】
+【需要注意：std::move 会把传入参数对应的对象“置空”；对象要能够被move，其对应类型内必须实现相应的move构造函数】
+【比较有代表性的代码：】
+```cpp
+void TestSTLObject()
+{
+    std::string str = "Hello";
+    std::vector<std::string> v;
+ 
+    // uses the push_back(const T&) overload, which means
+    // we'll incur the cost of copying str
+    v.push_back(str);
+    std::cout << "After copy, str is \"" << str << "\"\n";
+ 
+    // uses the rvalue reference push_back(T&&) overload,
+    // which means no strings will be copied; instead, the contents
+    // of str will be moved into the vector.  This is less
+    // expensive, but also means str might now be empty.
+    v.push_back(std::move(str));
+    std::cout << "After move, str is \"" << str << "\"\n";
+ 
+    std::cout << "The contents of the vector are \"" << v[0]
+                                         << "\", \"" << v[1] << "\"\n";
+}
+```
+
+Output:
+```
+After copy, str is "Hello"
+After move, str is ""
+The contents of the vector are "Hello", "Hello"
+```
+【简而言之：因为传入的不是指针（或者说，不是Java那种跟指针类似的引用），若传左值，则意味着这是个在内存中存在的对象，要保证正确性所以必须产生复制】
+
 右值引用就是必须绑定到右值（一个临时对象、将要销毁的对象）的引用，一般表示对象的值。
 
 右值引用可实现转移语义（Move Sementics）和精确传递（Perfect Forwarding），它的主要目的有两个方面：
@@ -704,6 +743,12 @@ auto fcn2(It beg, It end) -> typename remove_reference<decltype(*beg)>::type
 
 ### 成员初始化列表
 
+```cpp
+S::S(int x) : n{x} {} // constructor definition: ": n{x}" is the initializer list
+```
+【其实就是构造函数的参数列表的“`:`”后面的那一长串；不过这一块原来也能用“`{}`”来初始化各个成员】
+【一个细节：初始化列表通常写在definition里，而不写在declaration里；如果同时写在两者中……<b>（会发生啥？没验证过）</b>；但如果初始化列表和构造函数体都写在declaration里（即inline），那也是可以的】
+
 好处
 
 * 更高效：少了一次调用默认构造函数的过程。
@@ -716,37 +761,44 @@ auto fcn2(It beg, It end) -> typename remove_reference<decltype(*beg)>::type
 
 用花括号初始化器列表初始化一个对象，其中对应构造函数接受一个 `std::initializer_list` 参数.
 
-initializer_list 使用
+initializer_list 使用【看main函数的前两行，这就是initializer_list的核心作用】
 
 ```cpp
+#include <initializer_list>
 #include <iostream>
 #include <vector>
-#include <initializer_list>
  
-template <class T>
-struct S {
+template<class T>
+struct S
+{
     std::vector<T> v;
-    S(std::initializer_list<T> l) : v(l) {
+ 
+    S(std::initializer_list<T> l) : v(l)
+    {
          std::cout << "constructed with a " << l.size() << "-element list\n";
     }
-    void append(std::initializer_list<T> l) {
+ 
+    void append(std::initializer_list<T> l)
+    {
         v.insert(v.end(), l.begin(), l.end());
     }
-    std::pair<const T*, std::size_t> c_arr() const {
-        return {&v[0], v.size()};  // 在 return 语句中复制列表初始化
-                                   // 这不使用 std::initializer_list
+ 
+    std::pair<const T*, std::size_t> c_arr() const
+    {
+        return {&v[0], v.size()}; // copy list-initialization in return statement
+                                  // this is NOT a use of std::initializer_list
     }
 };
  
-template <typename T>
+template<typename T>
 void templated_fn(T) {}
  
 int main()
 {
-    S<int> s = {1, 2, 3, 4, 5}; // 复制初始化
-    s.append({6, 7, 8});      // 函数调用中的列表初始化
+    S<int> s = {1, 2, 3, 4, 5}; // copy list-initialization
+    s.append({6, 7, 8});        // list-initialization in function call
  
-    std::cout << "The vector size is now " << s.c_arr().second << " ints:\n";
+    std::cout << "The vector now has " << s.c_arr().second << " ints:\n";
  
     for (auto n : s.v)
         std::cout << n << ' ';
@@ -754,18 +806,19 @@ int main()
  
     std::cout << "Range-for over brace-init-list: \n";
  
-    for (int x : {-1, -2, -3}) // auto 的规则令此带范围 for 工作
+    for (int x : {-1, -2, -3}) // the rule for auto makes this ranged-for work
         std::cout << x << ' ';
     std::cout << '\n';
  
-    auto al = {10, 11, 12};   // auto 的特殊规则
+    auto al = {10, 11, 12}; // special rule for auto 【如何判断10,11,12的类型为int还是什么呢？]
+                            // 【auto special deduction rule】
  
     std::cout << "The list bound to auto has size() = " << al.size() << '\n';
  
-//    templated_fn({1, 2, 3}); // 编译错误！“ {1, 2, 3} ”不是表达式，
-                             // 它无类型，故 T 无法推导
+//  templated_fn({1, 2, 3}); // compiler error! "{1, 2, 3}" is not an expression,
+                             // it has no type, and so T cannot be deduced
     templated_fn<std::initializer_list<int>>({1, 2, 3}); // OK
-    templated_fn<std::vector<int>>({1, 2, 3});           // 也 OK
+    templated_fn<std::vector<int>>({1, 2, 3});           // also OK
 }
 ```
 
@@ -894,7 +947,7 @@ int main()
 }
 ```
 
-### 纯虚函数
+### 纯虚函数 【即abstract method】
 
 纯虚函数是一种特殊的虚函数，在基类中不能对虚函数给出有意义的实现，而把它声明为纯虚函数，它的实现留给该基类的派生类去做。
 
@@ -905,27 +958,35 @@ virtual int A() = 0;
 ### 虚函数、纯虚函数
 
 * 类里如果声明了虚函数，这个函数是实现的，哪怕是空实现，它的作用就是为了能让这个函数在它的子类里面可以被覆盖（override），这样的话，编译器就可以使用后期绑定来达到多态了。纯虚函数只是一个接口，是个函数的声明而已，它要留到子类里去实现。 
-* 虚函数在子类里面可以不重写；但纯虚函数必须在子类实现才可以实例化子类。
-* 虚函数的类用于 “实作继承”，继承接口的同时也继承了父类的实现。纯虚函数关注的是接口的统一性，实现由子类完成。 
-* 带纯虚函数的类叫抽象类，这种类不能直接生成对象，而只有被继承，并重写其虚函数后，才能使用。抽象类被继承后，子类可以继续是抽象类，也可以是普通类。
+* 虚函数在子类里面可以不重写；但纯虚函数必须在子类实现才可以实例化子类【但子类也可以依然不实现、把他声明为纯虚，再留给子子类去实现】。
+* 虚函数的类用于 “实作继承”，继承接口的同时也继承了父类的实现。纯虚函数关注的是<b>接口的统一性</b>【概念上确实更接近于interface】，实现由子类完成。 
+* 带纯虚函数的类叫抽象类，这种类不能直接生成对象【但抽象类指针是存在且可以使用的喔】，而只有被继承，并重写其虚函数后【这居然叫“重写”而不是叫“实现”吗…】，才能使用。抽象类被继承后，子类可以继续是抽象类，也可以是普通类。
 * 虚基类是虚继承中的基类，具体见下文虚继承。
 
 > [CSDN . C++ 中的虚函数、纯虚函数区别和联系](https://blog.csdn.net/u012260238/article/details/53610462)
 
+【下面是我的一些摘要】
+* 实际上，为虚函数【这里特指非纯虚函数】同时提供函数声明和缺省实现是很危险的。(当你增加一个派生类继承基类时,必须小心使用虚函数,满足派生类特有的需求，否则就是调用基类的虚函数，可能引起错误) 【重点是要“小心使用”；注意到位就行】
+
+* 非虚函数：当一个成员函数为非虚函数时，它在派生类中的行为就不应该不同。实际上【在设计上】，非虚成员函数表明了一种特殊性上的不变性，因为它表示的是不会改变的行为――不管一个派生类有多特殊。声明非虚函数的目的在于，使派生类继承函数的接口和强制性实现。（所有的派生类都应该完成的使用该函数完成某一个功能）
+
 ### 虚函数指针、虚函数表
 
-* 虚函数指针：在含有虚函数类的对象中，指向虚函数表，在运行时确定。
-* 虚函数表：在程序只读数据段（`.rodata section`，见：[目标文件存储结构](#%E7%9B%AE%E6%A0%87%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84)），存放虚函数指针，如果派生类实现了基类的某个虚函数，则在虚表中覆盖原本基类的那个虚函数指针，在编译时根据类的声明创建。
+* 虚函数指针：在含有虚函数类的对象中，<b><i>指向虚函数表</i></b>，在运行时确定。
+* 虚函数表【vtables, V-tables, virtual table】：在程序只读数据段（`.rodata section`，见：[目标文件存储结构](#%E7%9B%AE%E6%A0%87%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84)），存放虚函数指针【这里应该是指“虚函数<u>函数指针</u>”】，如果派生类实现了基类的某个虚函数，则在虚表中<b><i>覆盖</i></b>原本基类的那个虚函数指针【同前，应该也是指函数指针】，在编译时根据类的声明创建。
 
-> [C++中的虚函数(表)实现机制以及用C语言对其进行的模拟实现](https://blog.twofei.com/496/)
+【上面这段话，名词混用是否有点严重……】
+【参考：https://stackoverflow.com/questions/3554909/what-is-a-vtable-in-c 】
+
+> [C++中的虚函数(表)实现机制以及用C语言对其进行的模拟实现](https://blog.twofei.com/496/) 
 
 ### 虚继承
 
-虚继承用于解决多继承条件下的菱形继承问题（浪费存储空间、存在二义性）。
+虚继承用于解决多继承条件下的菱形继承问题（浪费存储空间、存在二义性）【B和C均继承自A，此时定义一个D，其继承自B和C，那么D会有几个A（或者说，B与C是否共用一个A）】。
 
 底层实现原理与编译器相关，一般通过**虚基类指针**和**虚基类表**实现，每个虚继承的子类都有一个虚基类指针（占用一个指针的存储空间，4字节）和虚基类表（不占用类对象的存储空间）（需要强调的是，虚基类依旧会在子类里面存在拷贝，只是仅仅最多存在一份而已，并不是不在子类里面了）；当虚继承的子类被当做父类继承时，虚基类指针也会被继承。
 
-实际上，vbptr 指的是虚基类表指针（virtual base table pointer），该指针指向了一个虚基类表（virtual table），虚表中记录了虚基类与本类的偏移地址；通过偏移地址，这样就找到了虚基类成员，而虚继承也不用像普通多继承那样维持着公共基类（虚基类）的两份同样的拷贝，节省了存储空间。
+实际上，<b><i>vbptr</i></b> 指的是虚基类表指针（virtual base table pointer），该指针指向了一个虚基类表（virtual table），虚表中记录了虚基类与本类的偏移地址；通过偏移地址，这样就找到了虚基类成员，而虚继承也不用像普通多继承那样维持着公共基类（虚基类）的两份同样的拷贝，节省了存储空间。
 
 ### 虚继承、虚函数
 
@@ -938,12 +999,16 @@ virtual int A() = 0;
         * 虚函数不占用存储空间
         * 虚函数表存储的是虚函数地址
 
+【https://stackoverflow.com/questions/21558/in-c-what-is-a-virtual-base-class 】
+【https://blog.csdn.net/qq_41431406/article/details/84933450 】
+
 ### 类模板、成员模板、虚函数
 
-* 类模板中可以使用虚函数
+* 类模板中可以使用虚函数【STL容器应该用的很多】
 * 一个类（无论是普通类还是类模板）的成员模板（本身是模板的成员函数）不能是虚函数
 
 ### 抽象类、接口类、聚合类
+【感觉是设计模式上的概念】
 
 * 抽象类：含有纯虚函数的类
 * 接口类：仅含有纯虚函数的抽象类
@@ -960,7 +1025,7 @@ virtual int A() = 0;
 1. malloc：申请指定字节数的内存。申请到的内存中的初始值不确定。
 2. calloc：为指定长度的对象，分配能容纳其指定个数的内存。申请到的内存的每一位（bit）都初始化为 0。
 3. realloc：更改以前分配的内存长度（增加或减少）。当增加长度时，可能需将以前分配区的内容移到另一个足够大的区域，而新增区域内的初始值则不确定。
-4. alloca：在栈上申请内存。程序在出栈的时候，会自动释放内存。但是需要注意的是，alloca 不具可移植性, 而且在没有传统堆栈的机器上很难实现。alloca 不宜使用在必须广泛移植的程序中。C99 中支持变长数组 (VLA)，可以用来替代 alloca。
+4. alloca：在栈上申请内存。程序在出栈的时候，会自动释放内存。但是需要注意的是，<b>alloca 不具可移植性</b>, 而且在没有传统堆栈的机器上很难实现。alloca 不宜使用在必须广泛移植的程序中。C99 中支持变长数组 (VLA)，可以用来替代 alloca。
 
 #### malloc、free
 
@@ -988,6 +1053,8 @@ p = nullptr;
 2. delete/delete[]：也完成两件事，先调用析构函数（清理资源），然后底层调用 free 释放空间。
 3. new 在申请内存时会自动计算所需字节数，而 malloc 则需我们自己输入申请内存空间的字节数。
 
+【总结一下就是：new与delete可以说是经过包装了的malloc与free】
+
 new、delete 使用
 
 申请内存，确认是否申请成功
@@ -1001,9 +1068,11 @@ int main()
 }
 ```
 
-#### 定位 new
+#### 定位 new 【placement new】
 
-定位 new（placement new）允许我们向 new 传递额外的地址参数，从而在预先指定的内存区域创建对象。
+定位 new（placement new）允许我们向 new 传递额外的地址参数，从而<b>在预先指定的内存区域</b>创建对象。
+
+【感觉是为了满足嵌入式开发而设计的特性，毕竟要严格安排内存布局嘛】
 
 ```cpp
 new (place_address) type
@@ -1015,26 +1084,29 @@ new (place_address) type [size] { braced initializer list }
 * `place_address` 是个指针
 * `initializers` 提供一个（可能为空的）以逗号分隔的初始值列表
 
-### delete this 合法吗？
+### delete this 合法吗？【自删除】
 
 > [Is it legal (and moral) for a member function to say delete this?](https://isocpp.org/wiki/faq/freestore-mgmt#delete-this)
 
 合法，但：
 
-1. 必须保证 this 对象是通过 `new`（不是 `new[]`、不是 placement new、不是栈上、不是全局、不是其他对象成员）分配的
+1. 必须保证 this 对象是通过 `new`（不是 `new[]`【毕竟`new[]是针对数组的，这不是Java，数组本身又不可能是对象`】、不是 placement new、不是栈上、不是全局【可能是出于设计上的因素？】、不是其他对象成员）分配的
 2. 必须保证调用 `delete this` 的成员函数是最后一个调用 this 的成员函数
 3. 必须保证成员函数的 `delete this ` 后面没有调用 this 了
 4. 必须保证 `delete this` 后没有人使用了
 
+【第2~4点：都要删除了，总得保证删除后就用不到了吧】
+
 ### 如何定义一个只能在堆上（栈上）生成对象的类？
+【并且，什么时候会想要用到这种设计呢？】
 
 > [如何定义一个只能在堆上（栈上）生成对象的类?](https://www.nowcoder.com/questionTerminal/0a584aa13f804f3ea72b442a065a7618)
 
 #### 只能在堆上
 
-方法：将析构函数设置为私有
+方法：<b>将析构函数设置为私有</b>
 
-原因：C++ 是静态绑定语言，编译器管理栈上对象的生命周期，编译器在为类对象分配栈空间时，会先检查类的析构函数的访问性。若析构函数不可访问，则不能在栈上创建对象。
+原因：C++ 是静态绑定语言，编译器管理栈上对象的生命周期，<u>编译器在为类对象分配栈空间时，会先检查类的析构函数的访问性。若析构函数不可访问，则不能在栈上创建对象</u>。
 
 #### 只能在栈上
 
