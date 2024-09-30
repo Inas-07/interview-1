@@ -1133,8 +1133,8 @@ std::auto_ptr<std::string> ps (new std::string(str))；
 3. weak_ptr
 4. auto_ptr（被 C++11 弃用）
 
-* Class shared_ptr 实现共享式拥有（shared ownership）概念。多个智能指针指向相同对象，该对象和其相关资源会在 “最后一个 reference 被销毁” 时被释放。为了在结构较复杂的情景中执行上述工作，标准库提供 weak_ptr、bad_weak_ptr 和 enable_shared_from_this 等辅助类。
-* Class unique_ptr 实现独占式拥有（exclusive ownership）或严格拥有（strict ownership）概念，保证同一时间内只有一个智能指针可以指向该对象。你可以移交拥有权。它对于避免内存泄漏（resource leak）——如 new 后忘记 delete ——特别有用。
+* Class `shared_ptr` 实现共享式拥有（shared ownership）概念。多个智能指针指向相同对象，该对象和其相关资源会在 “最后一个 reference 被销毁” 时被释放。为了在结构较复杂的情景中执行上述工作，标准库提供 weak_ptr、bad_weak_ptr 和 enable_shared_from_this 等辅助类。
+* Class `unique_ptr` 实现独占式拥有（exclusive ownership）或严格拥有（strict ownership）概念，保证同一时间内只有一个智能指针可以指向该对象。你可以移交拥有权。它对于避免内存泄漏（resource leak）——如 new 后忘记 delete ——特别有用。
 
 ##### shared_ptr
 
@@ -1142,11 +1142,47 @@ std::auto_ptr<std::string> ps (new std::string(str))；
 
 * 支持定制型删除器（custom deleter），可防范 Cross-DLL 问题（对象在动态链接库（DLL）中被 new 创建，却在另一个 DLL 内被 delete 销毁）、自动解除互斥锁
 
+【我的补充】
+文档与使用示例： https://learn.microsoft.com/zh-cn/cpp/cpp/how-to-create-and-use-shared-ptr-instances?view=msvc-170
+
+通常情况下，不建议自己`new`，而是用`make_shared`函数来创建`shared_ptr`
+
 ##### weak_ptr
 
 weak_ptr 允许你共享但不拥有某对象，一旦最末一个拥有该对象的智能指针失去了所有权，任何 weak_ptr 都会自动成空（empty）。因此，在 default 和 copy 构造函数之外，weak_ptr 只提供 “接受一个 shared_ptr” 的构造函数。
 
 * 可打破环状引用（cycles of references，两个其实已经没有被使用的对象彼此互指，使之看似还在 “被使用” 的状态）的问题
+
+【示例】
+https://learn.microsoft.com/zh-cn/cpp/cpp/how-to-create-and-use-weak-ptr-instances?view=msvc-170
+
+这个示例中还用到了C++中的lambda: 
+https://learn.microsoft.com/en-us/cpp/cpp/lambda-expressions-in-cpp?view=msvc-170
+
+C++中的lambda形式为：
+```cpp
+[] (float a, float b) {
+    return (std::abs(a) < std::abs(b));
+} 
+```
+
+其中：
+* `[]`为要capture的变量（在C# Java中这是自动完成的，C++中要手动）
+* `()` 即lambda参数列表
+
+还有些其他的optional specification，可以看doc.
+
+与C#和Java中的lambda最大的不同之处在于，C++中捕获周围变量需要手动完成，并且可以控制是捕获为"变量"还是“引用”，控制粒度更高。
+
+`[]`用法上：
+```cpp
+[&total, factor] // total为引用，factor为变量（复制一份）
+[factor, &total] // factor为变量（复制），total为引用 
+[&, factor] // 希望默认所有捕获的都是引用，那么第一个位置处加上`&`，后面的就全是引用
+[=, factor] // 希望默认所有捕获的都是变量，那么第一个位置处加上`=`，后面的就全是变量（要复制）
+[=, &total] // 默认捕获为变量，但是希望其中某几个是引用
+[&, =total] // 与上一条同理，只是反过来
+```
 
 ##### unique_ptr
 
@@ -1154,6 +1190,19 @@ unique_ptr 是 C++11 才开始提供的类型，是一种在异常时可以帮�
 
 * unique_ptr 用于取代 auto_ptr
 
+【这段八股也太少了点，下面是我的补充】
+如何创建和使用unique_ptr：https://learn.microsoft.com/zh-cn/cpp/cpp/how-to-create-and-use-unique-ptr-instances?view=msvc-170
+
+这其中，还会使用到`make_unique`函数：https://learn.microsoft.com/zh-cn/cpp/standard-library/memory-functions?view=msvc-170#make_unique；
+
+通常情况下，比起自己new，更优先通过make_unique来得到unique_ptr对象；
+
+此外，`make_unique`可以以通过传入构造函数相应参数列表的方式，构造一个对象对应的unique_ptr（这个方式与python中的**kwargs非常像）；这是通过`std::forward`函数实现的：https://blog.csdn.net/Awesomewan/article/details/129582548
+
+最后别忘了，`make_unique`也可以用来创建数组，具体示例见文档的“示例4”
+```cpp
+auto p = make_unique<int[]>(5);
+```
 ##### auto_ptr
 
 被 c++11 弃用，原因是缺乏语言特性如 “针对构造和赋值” 的 `std::move` 语义，以及其他瑕疵。
@@ -1179,7 +1228,7 @@ unique_ptr 是 C++11 才开始提供的类型，是一种在异常时可以帮�
 #### dynamic_cast
 
 * 用于多态类型的转换
-* 执行行运行时类型检查
+* 执行运行时类型检查
 * 只适用于指针或引用
 * 对不明确的指针的转换将失败（返回 nullptr），但不引发异常
 * 可以在整个类层次结构中移动指针，包括向上转换、向下转换
@@ -1295,6 +1344,8 @@ int main(){
 ```
 
 <a id="effective"></a>
+
+【这后面的先不看吧，看C++ 知识点面试题目总结 （八股文），这个其实也就是富文发的面经】
 
 ## ⭐️ Effective
 
